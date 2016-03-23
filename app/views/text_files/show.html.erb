@@ -1,0 +1,12 @@
+<p>
+  <strong>Title:</strong>
+  <%= @text_file.title %>
+</p>
+
+<p>
+  <strong>Text:</strong>
+  <%= @text_file.text %>
+</p>
+
+<%= link_to 'Edit', edit_text_file_path(@text_file) %> |
+<%= link_to 'Back', text_files_path %>
