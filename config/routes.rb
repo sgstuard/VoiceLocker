@@ -6,9 +6,11 @@ Rails.application.routes.draw do
 
   Rails.application.routes.draw do
     resources :text_files
+    get 'signup' => 'welcome#signup'
+    get 'login' => 'welcome#login'
+    get 'home' => 'welcome#home'
     root 'welcome#index'
   end
-  
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
 
