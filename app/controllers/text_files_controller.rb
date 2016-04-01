@@ -46,7 +46,7 @@ class TextFilesController < ApplicationController
 
   private
   def file_params
-    params.require(:text_file).permit(:title, :text)
+    params.require(:text_file).permit(:title, :text, :user_id)
   end
 
 end

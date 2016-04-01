@@ -1,16 +1,14 @@
 Rails.application.routes.draw do
-
-  # The priority is based upon order of creation: first created -> highest priority.
-  # See how all your routes lay out with "rake routes".
-  get 'welcome/index'
-
-  Rails.application.routes.draw do
-    resources :text_files
-    get 'signup' => 'welcome#signup'
-    get 'login' => 'welcome#login'
-    get 'home' => 'welcome#home'
-    root 'welcome#index'
-  end
+  resources :text_files
+  resources :users
+  get     'user_files'  => 'text_files#index'
+  get     'signup'      => 'users#new'
+  get     'home'        => 'welcome#home'
+  get     'login'       => 'sessions#new'
+  post    'login'       => 'sessions#create'
+  delete  'logout'      => 'sessions#destroy'
+  root    'welcome#index'
+end
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
 
@@ -62,4 +60,3 @@ Rails.application.routes.draw do
   #     # (app/controllers/admin/products_controller.rb)
   #     resources :products
   #   end
-end

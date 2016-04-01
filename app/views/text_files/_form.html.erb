@@ -24,8 +24,8 @@
       <%= f.text_area :text %>
     </p>
 
-    <p>
-      <%= f.submit %>
-    </p>
+    <%= f.hidden_field :user_id, :value => current_user.id %>
+
+    <%= f.submit %>
 
 <% end %>
