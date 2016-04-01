@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :text_files
   resources :users
+  get 'user_files' => 'text_files#index'
   get 'signup' => 'users#new'
   get 'login' => 'welcome#login'
   get 'home' => 'welcome#home'
