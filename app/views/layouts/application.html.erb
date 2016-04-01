@@ -11,7 +11,7 @@
   <div class="container">
     <nav>
       <ul class="nav navbar-nav navbar-right">
-        <li><%= link_to "Home",   'home' %></li>
+        <li><%= link_to "Home", home_path %></li>
 
         <% if logged_in? %>
           <li><%= link_to "Log Out", logout_path, method: "delete" %></li>
