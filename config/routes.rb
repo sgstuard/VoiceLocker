@@ -6,7 +6,6 @@ Rails.application.routes.draw do
   get     'home'        => 'welcome#home'
   get     'login'       => 'sessions#new'
   post 'record_audio' => 'users#record_audio'
-  put 'record_audio_method' => 'users#record_audio_method'
 
   post    'login'       => 'sessions#create'
   delete  'logout'      => 'sessions#destroy'

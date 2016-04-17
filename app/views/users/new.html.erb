@@ -19,9 +19,8 @@
       <%= f.label :passphrase_text, "Enter Passphrase" %>
       <%= f.text_field :passphrase_text, class: 'form-control' %>
 
-
-      <%= image_submit_tag("Microphone-outlined-circular-button.svg.png", data:{ confirm: "Ready to record audio?"}) %>
-
+      <h3> When you click this button, record your passphrase! </h3>
+      <%= image_submit_tag("Microphone-outlined-circular-button.svg.png", class: "microphone", data:{ confirm: "Ready to record audio?"}) %>
     <% end %>
   </div>
 </div>

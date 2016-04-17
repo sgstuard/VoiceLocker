@@ -27,13 +27,10 @@ class UsersController < ApplicationController
     end
   end
 
+
   def record_audio
-    flash[:success] = "Lets record audio"
-    sleep(3)
-
-  end
-
-  def record_audio_method
+    @user = User.new(user_params)
+    puts 'user saved'
     logger.debug "Recording #{RECORDING_LENGTH} seconds of audio..."
     microphone = Microphone.new
 

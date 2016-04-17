@@ -1,5 +1,9 @@
 
-<h1> test </h1>
+<h1> Hello <%=@user.username %> </h1>
+
+<h3> Please clearly pronounce your passphrase: <%= @user.passphrase_text %> </h3>
 
 <td><%= link_to "record", record_audio_path, method: :put, remote:true%></td>
 
+<%# This is where a fallback button can live to destroy user if they don't want to signup %>
+<td> </td>
