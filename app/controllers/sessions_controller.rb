@@ -2,7 +2,9 @@ class SessionsController < ApplicationController
 
   require 'bundler/setup'
   require 'pocketsphinx-ruby'
+  require 'chromaprint'
   include Pocketsphinx
+  include Chromaprint
 
   MAX_SAMPLES = 2048
   RECORDING_INTERVAL = 0.1
@@ -41,10 +43,25 @@ class SessionsController < ApplicationController
     decoder.decode filename
     decoded_text = decoder.hypothesis.to_s
 
+    #16000 sampling rate, 1 channel
+    user_audio_context = Chromaprint::Context.new(16000, 1)
+    audio_data = File.binread(filename)
+    audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
+    puts audio_fingerprint.compressed
+    threshold = 0.55
+
+    #testing purposes only
+    audio_data_check = File.binread("test_write_user_id_testmanraw.raw")
+    check_fingerprint = user_audio_context.get_fingerprint(audio_data_check)
+
     puts 'user tried logging in with: ' + decoded_text
     if decoded_text == user.passphrase_text
       puts 'user is ' + user.username
-      match_login = true
+      puts check_fingerprint.compare(audio_fingerprint)
+      if check_fingerprint.compare(audio_fingerprint) > threshold
+        match_login = true
+      end
+
     end
 
 

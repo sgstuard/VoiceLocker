@@ -2,7 +2,9 @@ class UsersController < ApplicationController
 
   require 'bundler/setup'
   require 'pocketsphinx-ruby'
+  require 'chromaprint'
   include Pocketsphinx
+  include Chromaprint
 
   MAX_SAMPLES = 2048
   RECORDING_INTERVAL = 0.1
@@ -28,7 +30,7 @@ class UsersController < ApplicationController
   end
 
 
-  def record_audio()
+  def record_audio
 
     @match = false
 
@@ -75,6 +77,12 @@ class UsersController < ApplicationController
       end
     end
 
+    #16000 sampling rate, 1 channel
+    user_audio_context = Chromaprint::Context.new(16000, 1)
+    audio_data = File.binread(filename)
+    audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
+    puts audio_fingerprint.compressed
+
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
     decoder.decode filename
     @decoded_text = decoder.hypothesis.to_s
@@ -83,12 +91,13 @@ class UsersController < ApplicationController
     if @decoded_text == @user.passphrase_text
       puts 'user is ' + @user.username
       @user.update_attribute(:passphrase_recording, filename)
+      @user.update_attribute(:passphrase_fingerprint, audio_fingerprint.raw)
       @match = true
     end
   end
 
   private
     def user_params
-      params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_recording)
+      params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_recording, :passphrase_fingerprint)
     end
 end

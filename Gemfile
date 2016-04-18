@@ -34,6 +34,7 @@ gem 'bcrypt', '3.1.7'
 
 gem 'pocketsphinx-ruby'
 gem 'countdown'
+gem 'chromaprint'
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
