@@ -28,13 +28,34 @@ class UsersController < ApplicationController
   end
 
 
-  def record_audio
-    @user = User.new(user_params)
-    puts 'user saved'
+  def record_audio()
+
+    @match = false
+
+    if params[:flag]
+      flag = params[:flag]
+    else
+      flag = 1
+    end
+
+    puts 'flag is :' + flag.to_s
+    if flag == 1
+      @user = User.new(user_params)
+      @user.save
+      puts 'user saved'
+      puts 'user id is:' + @user.id.to_s
+    else
+      puts 'looking for user: ' + params[:user_name]
+      @user = User.find_by username: params[:user_name]
+      puts @user
+    end
+
     logger.debug "Recording #{RECORDING_LENGTH} seconds of audio..."
     microphone = Microphone.new
 
-    File.open("test_write.raw", "wb") do |file|
+    filename = "test_write_user_id_"+ @user.username.to_s + ".raw"
+
+    File.open(filename, "wb") do |file|
       logger.debug('recording now')
 
       microphone.record do
@@ -42,7 +63,7 @@ class UsersController < ApplicationController
         FFI::MemoryPointer.new(:int16, MAX_SAMPLES) do |buffer|
           puts 'recording now'
 
-          50.times do
+          30.times do
             sample_count = microphone.read_audio(buffer, MAX_SAMPLES)
 
             # sample_count * 2 since this is length in bytes
@@ -55,14 +76,19 @@ class UsersController < ApplicationController
     end
 
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
-    decoder.decode 'test_write.raw'
+    decoder.decode filename
     @decoded_text = decoder.hypothesis.to_s
     puts 'printing the word'
     puts @decoded_text
+    if @decoded_text == @user.passphrase_text
+      puts 'user is ' + @user.username
+      @user.update_attribute(:passphrase_recording, filename)
+      @match = true
+    end
   end
 
   private
     def user_params
-      params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_audio)
+      params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_recording)
     end
 end
