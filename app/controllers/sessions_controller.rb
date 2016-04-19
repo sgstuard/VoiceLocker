@@ -41,32 +41,37 @@ class SessionsController < ApplicationController
     end
 
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
-    decoder.decode filename
+    #decoder.decode filename
+    decoder.decode "test_write_user_id_testing_login_success.raw"
     decoded_text = decoder.hypothesis.to_s
 
     #16000 sampling rate, 1 channel
     user_audio_context = Chromaprint::Context.new(16000, 1)
-    audio_data = File.binread(filename)
+    audio_data = File.binread("test_write_user_id_testing_login_success.raw")
     audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
     puts audio_fingerprint.compressed
-    threshold = 0.55
+    threshold = 0.50
 
-    #testing purposes only
-    #audio_data_check = File.binread("test_write_user_id_testmanraw.raw")
-    #check_fingerprint = user_audio_context.get_fingerprint(audio_data_check)
 
-    #for login get json
-    check_user_audio_context = Chromaprint::Context.new(16000, 1)
-    audio_data_check_json = JSON.parse(user.passphrase_fingerprint)
-    audio_data_check_data= audio_data_check_json["data"]
-    puts 'data: ' + audio_data_check_data.to_s
-    audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check_data["compressed"], audio_data_check_data["raw"])
+    #testing purposes only, user tester and password thisisatest
+    puts eval(user.passphrase_fingerprint)
+    audio_data_check = eval(user.passphrase_fingerprint)[:data]
+
+    puts 'data: ' + audio_data_check.to_s
+    audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check[:compressed], audio_data_check[:raw])
+
+    #for login get json, commented out for testing
+    #audio_data_check_json = JSON.parse(user.passphrase_fingerprint)
+    #audio_data_check_data= audio_data_check_json["data"]
+    #puts 'data: ' + audio_data_check_data.to_s
+    #audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check_data["compressed"], audio_data_check_data["raw"])
 
     #puts 'audio data check: ' + audio_data_check
 
     puts 'user tried logging in with: ' + decoded_text
     if decoded_text == user.passphrase_text
       puts 'user is ' + user.username
+      #puts audio_fingerprint.compare(audio_data_check_finger)
       puts audio_fingerprint.compare(audio_data_check_finger)
       if audio_fingerprint.compare(audio_data_check_finger) > threshold
         match_login = true

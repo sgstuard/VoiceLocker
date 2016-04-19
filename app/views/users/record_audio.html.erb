@@ -5,7 +5,8 @@
     <h1> Congrats! Your passphrase matched your audio! Everything saved. </h1>
 <% end %>
 <% if !@match %>
-    <h3> Please clearly pronounce your passphrase: <%= @user.passphrase_text %> </h3>
+    <h3> Oops! The computer heard: <%= @decoded_text %> </h3>
+    <h3> Please clearly pronounce your passphrase: <%= @passphrase_text %> </h3>
 
     <td><%= link_to "record", record_audio_path(flag: 0, user_name: @user.username), :method => :post %></td>
 <% end %>
