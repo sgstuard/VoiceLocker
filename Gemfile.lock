@@ -157,6 +157,7 @@ DEPENDENCIES
   countdown
   jbuilder (~> 2.0)
   jquery-rails
+  json
   pocketsphinx-ruby
   rails (= 4.2.5)
   sass-rails (~> 5.0)

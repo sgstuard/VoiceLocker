@@ -3,6 +3,7 @@ class UsersController < ApplicationController
   require 'bundler/setup'
   require 'pocketsphinx-ruby'
   require 'chromaprint'
+  require 'json'
   include Pocketsphinx
   include Chromaprint
 
@@ -91,7 +92,8 @@ class UsersController < ApplicationController
     if @decoded_text == @user.passphrase_text
       puts 'user is ' + @user.username
       @user.update_attribute(:passphrase_recording, filename)
-      @user.update_attribute(:passphrase_fingerprint, audio_fingerprint.raw)
+      audio_fingerprint_json = { :data => audio_fingerprint }.to_json
+      @user.update_attribute(:passphrase_fingerprint, audio_fingerprint_json)
       @match = true
     end
   end

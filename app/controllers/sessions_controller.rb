@@ -3,6 +3,7 @@ class SessionsController < ApplicationController
   require 'bundler/setup'
   require 'pocketsphinx-ruby'
   require 'chromaprint'
+  require 'json'
   include Pocketsphinx
   include Chromaprint
 
@@ -51,14 +52,23 @@ class SessionsController < ApplicationController
     threshold = 0.55
 
     #testing purposes only
-    audio_data_check = File.binread("test_write_user_id_testmanraw.raw")
-    check_fingerprint = user_audio_context.get_fingerprint(audio_data_check)
+    #audio_data_check = File.binread("test_write_user_id_testmanraw.raw")
+    #check_fingerprint = user_audio_context.get_fingerprint(audio_data_check)
+
+    #for login get json
+    check_user_audio_context = Chromaprint::Context.new(16000, 1)
+    audio_data_check_json = JSON.parse(user.passphrase_fingerprint)
+    audio_data_check_data= audio_data_check_json["data"]
+    puts 'data: ' + audio_data_check_data.to_s
+    audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check_data["compressed"], audio_data_check_data["raw"])
+
+    #puts 'audio data check: ' + audio_data_check
 
     puts 'user tried logging in with: ' + decoded_text
     if decoded_text == user.passphrase_text
       puts 'user is ' + user.username
-      puts check_fingerprint.compare(audio_fingerprint)
-      if check_fingerprint.compare(audio_fingerprint) > threshold
+      puts audio_fingerprint.compare(audio_data_check_finger)
+      if audio_fingerprint.compare(audio_data_check_finger) > threshold
         match_login = true
       end
 

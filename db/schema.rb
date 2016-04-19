@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160418031828) do
+ActiveRecord::Schema.define(version: 20160419041638) do
 
   create_table "text_files", force: :cascade do |t|
     t.string   "title"
@@ -28,7 +28,7 @@ ActiveRecord::Schema.define(version: 20160418031828) do
     t.datetime "updated_at",             null: false
     t.string   "passphrase_text"
     t.string   "passphrase_recording"
-    t.string   "passphrase_fingerprint"
+    t.text     "passphrase_fingerprint"
   end
 
   add_index "users", ["username"], name: "index_users_on_username", unique: true
