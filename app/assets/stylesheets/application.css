@@ -16,20 +16,52 @@
 @charset "utf-8";
 
 body {
-  background: #d4d4d4 url("../images/background.png");
+  /*background: #d4d4d4 url("../images/background.png");*/
   text-align: center;
   font-family: sans-serif; }
 
 h1 {
-  color: rgba(0, 0, 0, .3);
+  color: rgba(255, 0, 0, .7);
   font-weight: bold;
   font-size: 32px;
   letter-spacing: -1px;
   text-transform: uppercase;
   text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
-  background: url("../images/middleman.png") no-repeat center 100px;
+  /*background: url("../images/middleman.png") no-repeat center 100px;*/
   padding: 35px 0 10px;
   margin: 0; }
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: rgba(255, 0, 0, .7);
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+}
+
+
+table { border-collapse: collapse; 
+   width: 100%; 
+   margin: 10px 5px; }
+th { background: red; border: solid #ddd; color: black; font-weight: 700; text-align: center; border-width: 1px 0; padding: 5px; font-size: 25px; }
+
+
 
 .doc {
   font-size: 14px;
@@ -50,21 +82,7 @@ h1 {
   -webkit-animation-name: welcome;
   -webkit-animation-duration: .9s; }
 
-@-webkit-keyframes welcome {
-  from {
-    -webkit-transform: scale(0);
-    opacity: 0;
-  }
-  50% {
-   -webkit-transform: scale(0);
-   opacity: 0;
-  }
-  82.5% {
-    -webkit-transform: scale(1.03);
-    -webkit-animation-timing-function: ease-out;
-    opacity: 1;
-  }
-  to {
-    -webkit-transform: scale(1);
-  }
+div .microphone{
+    height:4% !important;
+    width: 4%;
 }

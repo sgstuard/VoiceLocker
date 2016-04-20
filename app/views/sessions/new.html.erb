@@ -11,7 +11,8 @@
       <%= f.label :password %>
       <%= f.password_field :password, class: 'form-control' %>
 
-      <%= f.submit "Log in", class: "btn btn-primary" %>
+        <h3> When you click this button, say your passphrase! </h3>
+        <%= image_submit_tag("Microphone-outlined-circular-button.svg.png", class: "microphone", data:{ confirm: "Ready to record audio?"}) %>
     <% end %>
 
     <p>New user? <%= link_to "Sign up now!", signup_path %></p>

@@ -1,4 +1,5 @@
 class TextFilesController < ApplicationController
+  before_action :correct_user, except: [:index, :create, :new]
 
   def index
     @text_files = TextFile.all
@@ -47,6 +48,14 @@ class TextFilesController < ApplicationController
   private
   def file_params
     params.require(:text_file).permit(:title, :text, :user_id)
+  end
+
+  def correct_user
+    file = TextFile.find(params[:id])
+    if(file.user_id != current_user.id)
+      flash[:danger] = "That file does not belong to you!"
+      redirect_to user_files_url
+    end
   end
 
 end
