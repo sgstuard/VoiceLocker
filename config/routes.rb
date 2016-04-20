@@ -5,11 +5,11 @@ Rails.application.routes.draw do
   get     'signup'      => 'users#new'
   get     'home'        => 'welcome#home'
   get     'login'       => 'sessions#new'
-  post 'record_audio' => 'users#record_audio'
+  post    'record_audio'=> 'users#record_audio'
 
   post    'login'       => 'sessions#create'
   delete  'logout'      => 'sessions#destroy'
-  root    'welcome#index'
+  root    'welcome#home'
 end
   # You can have the root of your site routed with "root"
   # root 'welcome#index'

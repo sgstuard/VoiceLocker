@@ -1,4 +1,5 @@
 class TextFilesController < ApplicationController
+  before_action :correct_user, except: [:index, :create, :new]
 
   require 'bundler/setup'
   require 'pocketsphinx-ruby'
@@ -193,6 +194,14 @@ class TextFilesController < ApplicationController
       flash.now[:danger] = 'Your voice did not match passphrase, try again.'
     end
 
+  end
+
+  def correct_user
+    file = TextFile.find(params[:id])
+    if(file.user_id != current_user.id)
+      flash[:danger] = "That file does not belong to you!"
+      redirect_to user_files_url
+    end
   end
 
 end
