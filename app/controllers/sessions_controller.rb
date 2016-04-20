@@ -4,12 +4,24 @@ class SessionsController < ApplicationController
   require 'pocketsphinx-ruby'
   require 'chromaprint'
   require 'json'
+  require 'digest'
   include Pocketsphinx
   include Chromaprint
 
   MAX_SAMPLES = 2048
   RECORDING_INTERVAL = 0.1
   RECORDING_LENGTH = 5
+
+  private def hash_passphrase_text passphrase
+    passphrase_text_hash = Digest::SHA256.base64digest passphrase
+  end
+
+  private def generate_hash_24 phrase, username
+    passphrase_hash = Digest::SHA256.base64digest phrase+username
+    key = passphrase_hash[0,24]
+    puts 'size in bytes is: ' + key.bytesize.to_s
+    return key
+  end
 
   def create
     user = User.find_by(username: params[:session][:username])
@@ -48,32 +60,35 @@ class SessionsController < ApplicationController
     #16000 sampling rate, 1 channel
     user_audio_context = Chromaprint::Context.new(16000, 1)
     audio_data = File.binread("test_write_user_id_testing_login_success.raw")
+    #audio_data = File.binread(filename)
     audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
     puts audio_fingerprint.compressed
     threshold = 0.50
 
 
-    #testing purposes only, user tester and password thisisatest
-    puts eval(user.passphrase_fingerprint)
-    audio_data_check = eval(user.passphrase_fingerprint)[:data]
-
-    puts 'data: ' + audio_data_check.to_s
-    audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check[:compressed], audio_data_check[:raw])
-
-    #for login get json, commented out for testing
-    #audio_data_check_json = JSON.parse(user.passphrase_fingerprint)
-    #audio_data_check_data= audio_data_check_json["data"]
-    #puts 'data: ' + audio_data_check_data.to_s
-    #audio_data_check_finger = Chromaprint::Fingerprint.new(audio_data_check_data["compressed"], audio_data_check_data["raw"])
-
-    #puts 'audio data check: ' + audio_data_check
-
     puts 'user tried logging in with: ' + decoded_text
-    if decoded_text == user.passphrase_text
-      puts 'user is ' + user.username
+    #hash the passphrase to see if it matches stored in db
+    voice_to_pass_hash = hash_passphrase_text decoded_text
+    if voice_to_pass_hash == user.passphrase_text #this means the words are the same
+      #hash the passphrase for the key
+      login_hash_key = generate_hash_24 decoded_text, user.username
+      #use the hash to decrypt the fingerprint
+
+      #testing purposes only, user tester and password thisisatest
+      #decrypt fingerprint in db to check
+      encrypted_fingerprint = user.passphrase_fingerprint
+      puts 'the users fingerprint is : ' + encrypted_fingerprint
+      decrypted = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{encrypted_fingerprint}' #{login_hash_key}`
+      puts decrypted
+      decrypted_json = JSON.parse(decrypted)
+
+      newone = Chromaprint::Fingerprint.new(decrypted_json["compressed"], decrypted_json["raw"])
+      puts decrypted_json
+
+      puts 'user passphrase hash matches ' + user.username
       #puts audio_fingerprint.compare(audio_data_check_finger)
-      puts audio_fingerprint.compare(audio_data_check_finger)
-      if audio_fingerprint.compare(audio_data_check_finger) > threshold
+      puts audio_fingerprint.compare(newone)
+      if audio_fingerprint.compare(newone) > threshold
         match_login = true
       end
 

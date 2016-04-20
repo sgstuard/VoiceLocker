@@ -1,18 +1,21 @@
+"""
+USAGE:
+    python enc.py '"String to be encrypted"' key
+    
+    key: Must be 24bytes in length
+
+"""
+
+
 from tri_des import *
 import sys
 
-def main(data):
-    #print data
-    #print type(data)
-    key = "123456123456123456123456"
+def main(data, key):
     IV = "\0\0\0\0\0\0\0\0"
     k = triple_des(key, IV)
-    #print k.encrypt(data)
-    reload(sys)  
-    sys.setdefaultencoding('utf8')
-    sys.stdout.write((k.encrypt(data)).encode('ascii'))
-    #return "Encrypted: %r" % k.encrypt(data)
+    #print "Encrypted: %r" % k.encrypt(data)
+    sys.stdout.write k.encrypt(data)
     
     
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], str(sys.argv[2]))

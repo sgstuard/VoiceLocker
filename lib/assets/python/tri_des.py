@@ -23,6 +23,7 @@
 #       
 #########################################################################
 
+import base64
 
 # The base class DES
 class _baseDes(object):
@@ -476,9 +477,10 @@ class triple_des(_baseDes):
             self.__key3.setIV(block)
             result.append(block)
             i += 8
-        return ''.join(result)
+        return base64.standard_b64encode(str(''.join(result)))        
 
-    def decrypt(self, data):
+    def decrypt(self, data_b64):
+        data = base64.standard_b64decode(data_b64)
         ENCRYPT = des.ENCRYPT
         DECRYPT = des.DECRYPT
         data = self._guardAgainstUnicode(data)

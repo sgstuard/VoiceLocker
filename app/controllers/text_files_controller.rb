@@ -1,5 +1,17 @@
 class TextFilesController < ApplicationController
 
+  require 'bundler/setup'
+  require 'pocketsphinx-ruby'
+  require 'chromaprint'
+  require 'json'
+  require 'digest'
+  include Pocketsphinx
+  include Chromaprint
+
+  MAX_SAMPLES = 2048
+  RECORDING_INTERVAL = 0.1
+  RECORDING_LENGTH = 5
+
   def index
     @text_files = TextFile.all
   end
@@ -10,15 +22,31 @@ class TextFilesController < ApplicationController
 
   def show
     @text_file = TextFile.find(params[:id])
+    user_key = get_phrase_for_encryption @text_file
+    @decrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.title}' #{user_key}`
+    @decrypted_text = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.text}' #{user_key}`
+
+    puts 'showing title: ' + @decrypted_text
+
   end
 
   def edit
     @text_file = TextFile.find(params[:id])
+    user_key = get_phrase_for_encryption @text_file
+    @decrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.title}' #{user_key}`
+    @decrypted_text = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.text}' #{user_key}`
+
+    puts 'showing title: ' + @decrypted_text
+
   end
 
   def create
   @text_file = TextFile.new(file_params)
-
+  user_key = get_phrase_for_encryption @text_file
+  encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
+  encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
+  @text_file.title = encrypted_title
+  @text_file.text = encrypted_data
     if @text_file.save
       redirect_to @text_file
     else
@@ -29,8 +57,17 @@ class TextFilesController < ApplicationController
 
   def update
     @text_file = TextFile.find(params[:id])
-
+    user_key = get_phrase_for_encryption @text_file
+    encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
+    encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
+    @text_file.title = encrypted_title
+    @text_file.text = encrypted_data
+    puts @text_file.title
+    puts encrypted_title
     if @text_file.update(file_params)
+      @text_file.title = encrypted_title
+      @text_file.text = encrypted_data
+      @text_file.save
       redirect_to @text_file
     else
       render 'edit'
@@ -47,6 +84,72 @@ class TextFilesController < ApplicationController
   private
   def file_params
     params.require(:text_file).permit(:title, :text, :user_id)
+  end
+  def hash_passphrase_text passphrase
+    passphrase_text_hash = Digest::SHA256.base64digest passphrase
+  end
+
+  def generate_hash_24 phrase, username
+    passphrase_hash = Digest::SHA256.base64digest phrase+username
+    key = passphrase_hash[0,24]
+    puts 'size in bytes is: ' + key.bytesize.to_s
+    return key
+  end
+
+  def get_phrase_for_encryption text_file
+    user = User.find(text_file.user_id)
+
+    logger.debug "Recording #{RECORDING_LENGTH} seconds of audio... to login"
+    microphone = Microphone.new
+    filename = "test_write_user_id_"+ user.username.to_s + "_create_file.raw"
+
+
+    File.open(filename, "wb") do |file|
+      logger.debug('recording now')
+
+      microphone.record do
+
+        FFI::MemoryPointer.new(:int16, MAX_SAMPLES) do |buffer|
+          puts 'recording now'
+
+          30.times do
+            sample_count = microphone.read_audio(buffer, MAX_SAMPLES)
+
+            # sample_count * 2 since this is length in bytes
+            file.write buffer.get_bytes(0, sample_count * 2)
+
+            sleep RECORDING_INTERVAL
+          end
+        end
+      end
+    end
+
+    decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
+    #decoder.decode filename
+    decoder.decode "test_write_user_id_testing_login_success.raw"
+    decoded_text = decoder.hypothesis.to_s
+
+    #16000 sampling rate, 1 channel
+    user_audio_context = Chromaprint::Context.new(16000, 1)
+    audio_data = File.binread("test_write_user_id_testing_login_success.raw")
+    #audio_data = File.binread(filename)
+    audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
+    puts audio_fingerprint.compressed
+    threshold = 0.50
+
+
+    puts 'user tried validating with: ' + decoded_text
+    #hash the passphrase to see if it matches stored in db
+    voice_to_pass_hash = hash_passphrase_text decoded_text
+    if voice_to_pass_hash == user.passphrase_text #this means the words are the same
+      #hash the passphrase for the key
+      login_hash_key = generate_hash_24 decoded_text, user.username
+    else
+      flash.now[:danger] = 'Your voice did not match passphrase, try again.'
+      render 'new'
+    end
+
+    return login_hash_key
   end
 
 end

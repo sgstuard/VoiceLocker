@@ -4,6 +4,7 @@ class UsersController < ApplicationController
   require 'pocketsphinx-ruby'
   require 'chromaprint'
   require 'json'
+  require 'digest'
   include Pocketsphinx
   include Chromaprint
 
@@ -44,19 +45,25 @@ class UsersController < ApplicationController
     puts 'flag is :' + flag.to_s
     if flag == 1
       @user = User.new(user_params)
+      @plain_passphrase = @user.passphrase_text
+      @user.passphrase_text = hash_passphrase_text @plain_passphrase
       @user.save
       puts 'user saved'
+      puts 'plain passphrase is: ' + @plain_passphrase
+      puts 'hashed passphrase is: ' + @user.passphrase_text
       puts 'user id is:' + @user.id.to_s
     else
       puts 'looking for user: ' + params[:user_name]
+      @plain_passphrase = params[:plain_phrase]
+      puts 'user passphrase is: ' + @plain_passphrase
       @user = User.find_by username: params[:user_name]
-      puts @user
+      puts @user.username
     end
 
     logger.debug "Recording #{RECORDING_LENGTH} seconds of audio..."
     microphone = Microphone.new
 
-    filename = "test_write_user_id_"+ @user.username.to_s + ".raw"
+    filename = "test_write_user_id_"+ @user.username.to_s + "_signup.raw"
 
     File.open(filename, "wb") do |file|
       logger.debug('recording now')
@@ -89,11 +96,18 @@ class UsersController < ApplicationController
     @decoded_text = decoder.hypothesis.to_s
     puts 'printing the word'
     puts @decoded_text
-    if @decoded_text == @user.passphrase_text
+    #if @decoded_text == @plain_passphrase PUT THIS BACK AFTER ENCRYPT TEST
+    if hash_passphrase_text @decoded_text == @user.passphrase_text
       puts 'user is ' + @user.username
+
+      #now we encrypt the fingerprint
+      #generate key for the user based on passphrase
+      key = generate_hash_24 @plain_passphrase, @user.username
+      puts 'passphrase passed to python: ' + @plain_passphrase
       @user.update_attribute(:passphrase_recording, filename)
-      audio_fingerprint_json = { :data => audio_fingerprint }.to_json
-      @user.update_attribute(:passphrase_fingerprint, audio_fingerprint_json)
+      finger_json = { :compressed => audio_fingerprint.compressed, :raw => audio_fingerprint.raw }.to_json
+      encrypted_fingerprint = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{finger_json}' #{key}`
+      @user.update_attribute(:passphrase_fingerprint, encrypted_fingerprint)
       @match = true
     end
   end
@@ -102,4 +116,16 @@ class UsersController < ApplicationController
     def user_params
       params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_recording, :passphrase_fingerprint)
     end
+
+    def hash_passphrase_text passphrase
+    passphrase_text_hash = Digest::SHA256.base64digest passphrase
+    end
+
+    def generate_hash_24 phrase, username
+      passphrase_hash = Digest::SHA256.base64digest phrase+username
+      key = passphrase_hash[0,24]
+      puts 'size in bytes is: ' + key.bytesize.to_s
+      return key
+    end
+
 end
