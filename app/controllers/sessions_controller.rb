@@ -54,12 +54,12 @@ class SessionsController < ApplicationController
 
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
     #decoder.decode filename
-    decoder.decode "test_write_user_id_testing_login_success.raw"
+    decoder.decode filename
     decoded_text = decoder.hypothesis.to_s
 
     #16000 sampling rate, 1 channel
     user_audio_context = Chromaprint::Context.new(16000, 1)
-    audio_data = File.binread("test_write_user_id_testing_login_success.raw")
+    audio_data = File.binread(filename)
     #audio_data = File.binread(filename)
     audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
     puts audio_fingerprint.compressed
@@ -88,14 +88,16 @@ class SessionsController < ApplicationController
       puts 'user passphrase hash matches ' + user.username
       #puts audio_fingerprint.compare(audio_data_check_finger)
       puts audio_fingerprint.compare(newone)
-      if audio_fingerprint.compare(newone) > threshold
+      if audio_fingerprint.compare(newone) >= threshold
         match_login = true
+        puts threshold.to_s
+        @threshold_level = audio_fingerprint.compare(newone)
       end
 
     end
 
 
-    if user && user.authenticate(params[:session][:password]) && match_login
+    if user && match_login
       log_in user
       redirect_to user_files_path
     else

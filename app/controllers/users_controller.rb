@@ -57,6 +57,7 @@ class UsersController < ApplicationController
       @plain_passphrase = params[:plain_phrase]
       puts 'user passphrase is: ' + @plain_passphrase
       @user = User.find_by username: params[:user_name]
+      @user.save
       puts @user.username
     end
 
@@ -97,7 +98,7 @@ class UsersController < ApplicationController
     puts 'printing the word'
     puts @decoded_text
     #if @decoded_text == @plain_passphrase PUT THIS BACK AFTER ENCRYPT TEST
-    if hash_passphrase_text @decoded_text == @user.passphrase_text
+    if hash_passphrase_text(@decoded_text) == @user.passphrase_text
       puts 'user is ' + @user.username
 
       #now we encrypt the fingerprint
@@ -109,7 +110,13 @@ class UsersController < ApplicationController
       encrypted_fingerprint = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{finger_json}' #{key}`
       @user.update_attribute(:passphrase_fingerprint, encrypted_fingerprint)
       @match = true
+
+    else
+      @match = false
+
     end
+
+
   end
 
   private

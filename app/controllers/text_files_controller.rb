@@ -23,6 +23,9 @@ class TextFilesController < ApplicationController
   def show
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
+    if !user_key
+      redirect_to user_files_path and return
+    end
     @decrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.title}' #{user_key}`
     @decrypted_text = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.text}' #{user_key}`
 
@@ -33,31 +36,46 @@ class TextFilesController < ApplicationController
   def edit
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
+    if !user_key
+      flash.now[:danger] = 'Cannot edit file. Your voice did not match your passphrase, try again.'
+      redirect_to user_files_path and return
+    else
     @decrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.title}' #{user_key}`
     @decrypted_text = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{@text_file.text}' #{user_key}`
 
     puts 'showing title: ' + @decrypted_text
-
+    end
   end
 
   def create
   @text_file = TextFile.new(file_params)
   user_key = get_phrase_for_encryption @text_file
+  if !user_key
+    flash.now[:danger] = 'Cannot save file. Your voice did not match your passphrase, try again.'
+    redirect_to user_files_path and return
+    flash.now[:danger] = 'Cannot save file. Your voice did not match your passphrase, try again.'
+
+  else
   encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
   encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
   @text_file.title = encrypted_title
   @text_file.text = encrypted_data
     if @text_file.save
-      redirect_to @text_file
+      redirect_to user_files_path
     else
+      flash.now[:danger] = 'Cannot save file. Your voice did not match your passphrase, try again.'
       render 'new'
     end
-
+  end
   end
 
   def update
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
+    if !user_key
+      'Cannot update. Your voice did not match your passphrase, try again.'
+      redirect_to user_files_path and return
+    else
     encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
     encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
     @text_file.title = encrypted_title
@@ -72,13 +90,22 @@ class TextFilesController < ApplicationController
     else
       render 'edit'
     end
+    end
+
   end
 
   def destroy
     @text_file = TextFile.find(params[:id])
-    @text_file.destroy
+    user_key = get_phrase_for_encryption @text_file
+    if !user_key
+      'Cannot delete. Your voice did not match your passphrase, try again.'
+      redirect_to user_files_path and return
+    else
 
-    redirect_to text_files_path
+    @text_file.destroy
+    redirect_to user_files_path
+    end
+
   end
 
   private
@@ -126,12 +153,12 @@ class TextFilesController < ApplicationController
 
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
     #decoder.decode filename
-    decoder.decode "test_write_user_id_testing_login_success.raw"
+    decoder.decode filename
     decoded_text = decoder.hypothesis.to_s
 
     #16000 sampling rate, 1 channel
     user_audio_context = Chromaprint::Context.new(16000, 1)
-    audio_data = File.binread("test_write_user_id_testing_login_success.raw")
+    audio_data = File.binread(filename)
     #audio_data = File.binread(filename)
     audio_fingerprint = user_audio_context.get_fingerprint(audio_data)
     puts audio_fingerprint.compressed
@@ -144,12 +171,28 @@ class TextFilesController < ApplicationController
     if voice_to_pass_hash == user.passphrase_text #this means the words are the same
       #hash the passphrase for the key
       login_hash_key = generate_hash_24 decoded_text, user.username
+      encrypted_fingerprint = user.passphrase_fingerprint
+      puts 'the users fingerprint is : ' + encrypted_fingerprint
+      decrypted = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{encrypted_fingerprint}' #{login_hash_key}`
+      puts decrypted
+      decrypted_json = JSON.parse(decrypted)
+
+      newone = Chromaprint::Fingerprint.new(decrypted_json["compressed"], decrypted_json["raw"])
+      puts newone.compare(audio_fingerprint).to_s
+      if audio_fingerprint.compare(newone) > threshold
+        return login_hash_key
+      else
+        return false
+        flash.now[:danger] = 'Your voice did not match the fingerprint, try again.'
+        redirect_to user_files_path
+      end
+
+
     else
+      return false
       flash.now[:danger] = 'Your voice did not match passphrase, try again.'
-      render 'new'
     end
 
-    return login_hash_key
   end
 
 end
