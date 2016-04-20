@@ -32,7 +32,7 @@ class UsersController < ApplicationController
     end
   end
 
-
+  #handles user signup and initial fingerprint recording
   def record_audio
 
     @match = false
@@ -44,6 +44,7 @@ class UsersController < ApplicationController
     end
 
     puts 'flag is :' + flag.to_s
+    #flag 1 means this is the first time the user will say their phrase
     if flag == 1
       @user = User.new(user_params)
       @plain_passphrase = @user.passphrase_text
@@ -53,7 +54,9 @@ class UsersController < ApplicationController
       puts 'plain passphrase is: ' + @plain_passphrase
       puts 'hashed passphrase is: ' + @user.passphrase_text
       puts 'user id is:' + @user.id.to_s
+
     else
+      #the else handles when the users phrase didn't match decoded text, so they redo the recording without changing user
       puts 'looking for user: ' + params[:user_name]
       @plain_passphrase = params[:plain_phrase]
       puts 'user passphrase is: ' + @plain_passphrase
@@ -125,10 +128,12 @@ class UsersController < ApplicationController
       params.require(:user).permit(:username,:password,:password_confirmation, :passphrase_text, :passphrase_recording, :passphrase_fingerprint)
     end
 
+    #computes hash of decoded passphrase to verify user (1st factor auth)
     def hash_passphrase_text passphrase
     passphrase_text_hash = Digest::SHA256.base64digest passphrase
     end
 
+    #generate the key to use in the 3DES encrypt/decrypt
     def generate_hash_24 phrase, username
       passphrase_hash = Digest::SHA256.base64digest phrase+username
       key = passphrase_hash[0,24]

@@ -24,6 +24,7 @@ class SessionsController < ApplicationController
     return key
   end
 
+  #creates a session from a user login
   def create
     user = User.find_by(username: params[:session][:username])
 
@@ -79,7 +80,7 @@ class SessionsController < ApplicationController
       #decrypt fingerprint in db to check
       encrypted_fingerprint = user.passphrase_fingerprint
       puts 'the users fingerprint is : ' + encrypted_fingerprint
-      decrypted = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/dec.py '#{encrypted_fingerprint}' #{login_hash_key}`
+      decrypted = `python lib/assets/python/dec.py '#{encrypted_fingerprint}' #{login_hash_key}`
       puts decrypted
       decrypted_json = JSON.parse(decrypted)
 
@@ -89,7 +90,9 @@ class SessionsController < ApplicationController
       puts 'user passphrase hash matches ' + user.username
       #puts audio_fingerprint.compare(audio_data_check_finger)
       puts audio_fingerprint.compare(newone)
+      #compare the stored fingerprint to the newly recorded fingerprint on login
       if audio_fingerprint.compare(newone) >= threshold
+        #if the fingerprints match to a degree above or the same as threshold, login
         match_login = true
         puts threshold.to_s
         @threshold_level = audio_fingerprint.compare(newone)
@@ -97,7 +100,7 @@ class SessionsController < ApplicationController
 
     end
 
-
+    #validate user exists and their parameters are correct, log them in
     if user && match_login
       log_in user
       redirect_to user_files_path
@@ -115,7 +118,7 @@ class SessionsController < ApplicationController
     redirect_to root_url
   end
 
-
+  #just for testing
   def record_audio
 
     logger.debug "Recording #{RECORDING_LENGTH} seconds of audio..."

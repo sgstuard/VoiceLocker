@@ -21,6 +21,7 @@ class TextFilesController < ApplicationController
     @text_file = TextFile.new
   end
 
+  #show the text file
   def show
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
@@ -34,6 +35,7 @@ class TextFilesController < ApplicationController
 
   end
 
+  #method to take you to edit text file
   def edit
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
@@ -48,6 +50,7 @@ class TextFilesController < ApplicationController
     end
   end
 
+  #creates text file
   def create
   @text_file = TextFile.new(file_params)
   user_key = get_phrase_for_encryption @text_file
@@ -57,8 +60,8 @@ class TextFilesController < ApplicationController
     flash.now[:danger] = 'Cannot save file. Your voice did not match your passphrase, try again.'
 
   else
-  encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
-  encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
+  encrypted_title = `python lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
+  encrypted_data = `python lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
   @text_file.title = encrypted_title
   @text_file.text = encrypted_data
     if @text_file.save
@@ -70,6 +73,7 @@ class TextFilesController < ApplicationController
   end
   end
 
+  #updates text file
   def update
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
@@ -77,8 +81,8 @@ class TextFilesController < ApplicationController
       'Cannot update. Your voice did not match your passphrase, try again.'
       redirect_to user_files_path and return
     else
-    encrypted_title = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
-    encrypted_data = `python /home/simon/Development/VoiceLocker/voicelocker/lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
+    encrypted_title = `python lib/assets/python/enc.py '#{@text_file.title}' #{user_key}`
+    encrypted_data = `python lib/assets/python/enc.py '#{@text_file.text}' #{user_key}`
     @text_file.title = encrypted_title
     @text_file.text = encrypted_data
     puts @text_file.title
@@ -95,6 +99,7 @@ class TextFilesController < ApplicationController
 
   end
 
+  #deletes text file
   def destroy
     @text_file = TextFile.find(params[:id])
     user_key = get_phrase_for_encryption @text_file
@@ -124,6 +129,7 @@ class TextFilesController < ApplicationController
     return key
   end
 
+  #false is returned if the hash of the decoded text from speech does not match the user's passphrase hash in the db
   def get_phrase_for_encryption text_file
     user = User.find(text_file.user_id)
 
@@ -131,7 +137,7 @@ class TextFilesController < ApplicationController
     microphone = Microphone.new
     filename = "test_write_user_id_"+ user.username.to_s + "_create_file.raw"
 
-
+    #writes to file to check against passphrase and fingerprnt
     File.open(filename, "wb") do |file|
       logger.debug('recording now')
 
@@ -152,12 +158,13 @@ class TextFilesController < ApplicationController
       end
     end
 
+    #decode the speech heard
     decoder = Pocketsphinx::Decoder.new(Pocketsphinx::Configuration.default)
     #decoder.decode filename
     decoder.decode filename
     decoded_text = decoder.hypothesis.to_s
 
-    #16000 sampling rate, 1 channel
+    #16000 sampling rate, 1 (mono) channel, read fingerprint of file recorded by pocketsphinx
     user_audio_context = Chromaprint::Context.new(16000, 1)
     audio_data = File.binread(filename)
     #audio_data = File.binread(filename)
@@ -196,6 +203,7 @@ class TextFilesController < ApplicationController
 
   end
 
+  #for testing, before users could see all files
   def correct_user
     file = TextFile.find(params[:id])
     if(file.user_id != current_user.id)
