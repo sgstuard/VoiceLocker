@@ -1,0 +1,38 @@
+<%# Created by Rails, almost entirely filled in manually %>
+<%# Contributors: Alex Humphries %>
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Voicelocker</title>
+  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+<header class="navbar navbar-fixed-top navbar-inverse">
+  <div class="container">
+    <nav>
+      <ul class="nav navbar-nav navbar-right">
+        <li><%= link_to "About", home_path %></li>
+
+        <% if logged_in? %>
+          <li><%= link_to "My Files", user_files_path %></li>
+          <li><%= link_to "Log Out", logout_path, method: "delete" %></li>
+        <% else %>
+          <li><%= link_to "Sign Up", signup_path %></li>
+          <li><%= link_to "Log In", login_path %></li>
+        <% end %>
+      </ul>
+    </nav>
+  </div>
+</header>
+    <% flash.each do |message_type, message| %>
+      <div class="alert alert-<%= message_type %>"><%= message %></div>
+    <% end %>
+
+    <%= yield %>
+    <%= debug(params) if Rails.env.development? %>
+
+</body>
+</html>

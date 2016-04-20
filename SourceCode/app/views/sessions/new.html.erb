@@ -1,0 +1,23 @@
+<%# File created by Rails, all code written by us %>
+<%# Contributors: Alex Humphries %>
+
+<% provide(:title, "Log in") %>
+<h1>Log in</h1>
+
+<div class="row">
+  <div class="col-md-6 col-md-offset-3">
+    <%= form_for(:session, url: login_path) do |f| %>
+
+      <%= f.label :username %>
+      <%= f.text_field :username, class: 'form-control' %>
+
+      <%= f.label :password %>
+      <%= f.password_field :password, class: 'form-control' %>
+
+        <h3> When you click this button, say your passphrase! </h3>
+        <%= image_submit_tag("Microphone-outlined-circular-button.svg.png", class: "microphone", data:{ confirm: "Ready to record audio?"}) %>
+    <% end %>
+
+    <p>New user? <%= link_to "Sign up now!", signup_path %></p>
+  </div>
+</div>
