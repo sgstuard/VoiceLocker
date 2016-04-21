@@ -1,5 +1,5 @@
 <%# File created by Rails, all code written by us %>
-<%# Contributors: Alex Humphries, Simon Stuard %>
+<%# Contributors: Alex Humphries %>
 
 <% provide(:title, "Log in") %>
 <h1>Log in</h1>

@@ -1,5 +1,4 @@
 <%# Our file %>
-<%# Contributors: Simon Stuard %>
 
 <%= form_for @text_file do |f| %>
 

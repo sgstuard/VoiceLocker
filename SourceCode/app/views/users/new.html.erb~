@@ -1,5 +1,5 @@
 <%# Our file %>
-<%# Contributors: Alex Humphries, Simon Stuard %>
+<%# Contributors: Alex Humphries %>
 
 <% provide(:title, 'Sign up') %>
 <h1>Sign up</h1>

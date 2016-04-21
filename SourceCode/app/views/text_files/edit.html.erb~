@@ -1,7 +1,7 @@
 <%# Our file %>
-<%# Contributors: Simon Stuard %>
+<%# Contributors: Simon Stuard %>>
 
-<h1>New Text File</h1>
+<h1>Editing file</h1>
 
 <%= render 'form' %>
 

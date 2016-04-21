@@ -1,5 +1,4 @@
 <%# Our file %>
-<%# Contributors: Simon Stuard %>
 
 <h1> Hello <%=@user.username %> </h1>
 

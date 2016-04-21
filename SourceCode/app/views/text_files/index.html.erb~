@@ -1,5 +1,4 @@
 <%# Our file %>
-<%# Contributors: Simon Stuard %>
 
 <h1>Listing Files</h1>
 <%= link_to 'New File', new_text_file_path %>
