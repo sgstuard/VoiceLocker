@@ -12,6 +12,7 @@
 #    requirement for the data structed used below.
 #
 #   Special thanks to N. Sedlock and T. Whiteman for comments and skeleton. 
+#   The following code is a moddified verision of pydes for use for VoiceLocker.
 #
 #   USAGE:
 #       from tri_des.py import *
