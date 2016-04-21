@@ -41,3 +41,7 @@ Use the 'rails: server' command from the root directory of VoiceLocker to host t
 To install pocketsphinx and dependencies: http://cmusphinx.sourceforge.net/wiki/tutorialpocketsphinx
 pocketsphinx-ruby: https://github.com/watsonbox/pocketsphinx-ruby
 chromaprint: https://github.com/TMXCredit/chromaprint
+
+# Contributions
+
+All files included in the SourceCode folder are files that we created or edited. Unless otherwise noted, most of the code contained in these files was written by us. 

@@ -1,5 +1,5 @@
 # Barebones template created by Rails, filled in manually
-# Contributors: Alex Humphries, Simin Stuard
+# Contributors: Alex Humphries, Simon Stuard
 
 Rails.application.routes.draw do
   resources :text_files

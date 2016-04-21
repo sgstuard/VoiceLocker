@@ -1,0 +1,1 @@
+Unless otherwise noted, files in the assets folder are entirely the work of Justin Angra.

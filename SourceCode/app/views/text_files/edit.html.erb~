@@ -1,8 +1,0 @@
-<%# Our file %>
-<%# Contributors: Simon Stuard %>>
-
-<h1>Editing file</h1>
-
-<%= render 'form' %>
-
-<%= link_to 'Back', text_files_path %>
